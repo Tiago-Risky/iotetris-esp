@@ -26,7 +26,6 @@ DHT dht(DHTPin, DHTTYPE);
 
 // Temporary variables
 static char celsiusTemp[7];
-static char fahrenheitTemp[7];
 static char humidityTemp[7];
 
 // MQTT setup
@@ -36,6 +35,9 @@ static char humidityTemp[7];
 #define humidity_topic    "sensor1/humidity"
 #define temperature_topic    "sensor1/temperature"
 
+// Sleep time between updates, in seconds
+#define sleepTime 60
+
 // Initializes the espClient.
 // The espClient name should be unique
 WiFiClient espClient;
@@ -44,8 +46,11 @@ PubSubClient client(espClient);
 // Setup
 void setup() {
   // Starting serial (for debugging)
+  long startTime = millis();
   Serial.begin(9600);
-  delay(10);
+  while(!Serial) { };
+  Serial.println("");
+  Serial.println("Starting");
 
   // Starting DHT library
   dht.begin();
@@ -58,94 +63,57 @@ void setup() {
   WiFi.begin(ssid, password);
   
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    delay(50);
     Serial.print(".");
   }
   Serial.println("");
   Serial.println("WiFi connected");
 
-  Serial.println("Waiting for the ESP IP...");
-  delay(10000); // does it really need this much delay...? 
-
+  Serial.print("ESP IP:");
   Serial.println(WiFi.localIP());
 
   // Setting up MQTT
   client.setServer(mqtt_server, 1883);
+
+  Serial.println("New read");
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Failed to read from DHT sensor!");
+    strcpy(celsiusTemp,"Failed");
+    strcpy(humidityTemp, "Failed");
+  }
+  else{
+    // Computes temperature values in Celsius + Fahrenheit and Humidity
+    float hic = dht.computeHeatIndex(t, h, false);
+    dtostrf(hic, 6, 2, celsiusTemp);
+    dtostrf(h, 6, 2, humidityTemp);
+
+    // Debug
+    Serial.print("Humidity: ");
+    Serial.print(h);
+    Serial.print(" %\t Temperature: ");
+    Serial.print(t);
+    Serial.print(" *C\t Heat index: ");
+    Serial.print(hic);
+    Serial.println(" *C ");
+
+    //Publishing to the MQTT
+    client.publish(humidity_topic, humidityTemp, true);
+    client.publish(temperature_topic, celsiusTemp, true);
+    Serial.println("MQTT Message Sent");
+  }
+
+  long now = millis();
+  long tdif = 900 - (now - startTime);
+  Serial.println("Going to sleep");
+  ESP.deepSleep((sleepTime*1000000)+(tdif*1000));
 }
 
 // Loop
-long lastMsg = 0;
-
 void loop() {
-  
-  // Reconnecting if needed
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
 
-  long now = millis();
-  if (now - lastMsg > 2000) {
-    lastMsg = now;
-
-    Serial.println("New read");
-    // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-    float h = dht.readHumidity();
-    // Read temperature as Celsius (the default)
-    float t = dht.readTemperature();
-    // Read temperature as Fahrenheit (isFahrenheit = true)
-    float f = dht.readTemperature(true);
-    // Check if any reads failed and exit early (to try again).
-    if (isnan(h) || isnan(t) || isnan(f)) {
-      Serial.println("Failed to read from DHT sensor!");
-      strcpy(celsiusTemp,"Failed");
-      strcpy(fahrenheitTemp, "Failed");
-      strcpy(humidityTemp, "Failed");
-    }
-    else{
-      // Computes temperature values in Celsius + Fahrenheit and Humidity
-      float hic = dht.computeHeatIndex(t, h, false);
-      dtostrf(hic, 6, 2, celsiusTemp);
-      float hif = dht.computeHeatIndex(f, h);
-      dtostrf(hif, 6, 2, fahrenheitTemp);
-      dtostrf(h, 6, 2, humidityTemp);
-
-      // Debug
-      Serial.print("Humidity: ");
-      Serial.print(h);
-      Serial.print(" %\t Temperature: ");
-      Serial.print(t);
-      Serial.print(" *C ");
-      Serial.print(f);
-      Serial.print(" *F\t Heat index: ");
-      Serial.print(hic);
-      Serial.print(" *C ");
-      Serial.print(hif);
-      Serial.println(" *F");
-
-      //Publishing to the MQTT
-      client.publish(humidity_topic, humidityTemp, true);
-      client.publish(temperature_topic, celsiusTemp, true);
-      Serial.println("MQTT Message Sent");
-    }
-  }
-}   
-
-// Reconneting to the MQTT broker 
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect(mqtt_name)) {
-      Serial.println("connected");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" trying again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
 }
-
