@@ -4,7 +4,7 @@
 void setup() {
   Wire.begin(SDA,SCL);
 
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("*** MASTER - START ***");
 }
 
@@ -16,5 +16,5 @@ void loop() {
     Serial.print(c);
     }
   Serial.println();
-  delay(500);
+  delay(10000);
 }

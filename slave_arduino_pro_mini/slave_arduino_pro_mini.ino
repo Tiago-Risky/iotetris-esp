@@ -1,5 +1,8 @@
 #include <Wire.h>
 #include "DHT.h"
+#include <avr/sleep.h>
+
+#define INTERRUPT_PIN 2
 
 // DHT Sensor setup
 #define DHTTYPE DHT11 // Sensor type
@@ -12,41 +15,41 @@ DHT dht(DHTPin, DHTTYPE);
 static char celsiusTemp[7];
 static char humidityTemp[7];
 
+boolean flag = false;
+
 void setup()
 {
   dht.begin();
   Wire.begin(9);                // join i2c bus with address #9
-  Wire.onReceive(receiveEvent); // register event
   Wire.onRequest(requestEvent);
   
   Serial.begin(9600);           // start serial for output
-  Serial.println("/// Slave - Start ///"); 
+  pinMode(LED_BUILTIN, OUTPUT);
+	pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+	digitalWrite(LED_BUILTIN, HIGH);
+	delay(500);
+	Serial.println("IoTetris: Start");
+	delay(500);	//delay needed
 }
 
 void loop()
 {
-  delay(100);
-}
-
-void receiveEvent(int howMany)
-{
-  while (1 < Wire.available()) // loop through all but the last
+  //readDHT11();
+  if(flag)
   {
-    char c = Wire.read();      // receive byte as a character
-    Serial.print(c);           // print the character
+    flag = false;
+    go_to_sleep();
   }
-  char x = Wire.read();         // receive byte as an integer
-  Serial.println(x);           // print the integer
 }
 
-void requestEvent(int howMany){
+void readDHT11(){
     // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
   // Read temperature as Celsius (the default)
   float t = dht.readTemperature();
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t)) {
-    Serial.println("Failed to read from DHT sensor!");
+    //Serial.println("Failed to read from DHT sensor!");
     strcpy(celsiusTemp,"Failed");
     strcpy(humidityTemp, "Failed");
   }
@@ -55,7 +58,32 @@ void requestEvent(int howMany){
     float hic = dht.computeHeatIndex(t, h, false);
     dtostrf(hic, 6, 2, celsiusTemp);
     dtostrf(h, 6, 2, humidityTemp);
-
-    Wire.write(humidityTemp);
   }
+}
+
+
+void requestEvent(int howMany){
+  //delay(500);
+  Wire.write("hello");
+  flag = true;
+}
+
+void go_to_sleep()
+{
+	sleep_enable();
+	attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), wakeUp_function, LOW);
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	digitalWrite(LED_BUILTIN, LOW);
+	delay(500);
+	Serial.println("IoTetris: Going to sleep");
+	delay(100);
+	sleep_cpu();
+	Serial.println("IoTetris: Continuing");
+	digitalWrite(LED_BUILTIN, HIGH);
+}
+void wakeUp_function()
+{
+	Serial.println("IoTetris: Interrupt");
+	sleep_disable();
+	detachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN));
 }

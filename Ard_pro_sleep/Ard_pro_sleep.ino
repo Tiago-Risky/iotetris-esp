@@ -21,12 +21,12 @@
 // The setup() function runs once each time the micro-controller starts
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(9600);
 	pinMode(LED_BUILTIN, OUTPUT);
 	pinMode(INTERRUPT_PIN, INPUT_PULLUP);
 	digitalWrite(LED_BUILTIN, HIGH);
 	delay(500);
-	Serial.println("IoTetris: I am wake!! Yeah");
+	Serial.println("IoTetris: Start");
 	delay(500);	//delay needed
 
 }
@@ -41,19 +41,19 @@ void loop()
 void go_to_sleep()
 {
 	sleep_enable();
-	attachInterrupt(0, wakeUp_function, LOW);
+	attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), wakeUp_function, LOW);
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 	digitalWrite(LED_BUILTIN, LOW);
 	delay(500);
-	Serial.println("Gooing to sleep");
+	Serial.println("IoTetris: Going to sleep");
 	delay(100);
 	sleep_cpu();
-	Serial.println("Continua aqui depois de atender a interrupcao");
+	Serial.println("IoTetris: Continuing");
 	digitalWrite(LED_BUILTIN, HIGH);
 }
 void wakeUp_function()
 {
-	Serial.println("IoTetris: Now I am working in my tasks!");
+	Serial.println("IoTetris: Interrupt");
 	sleep_disable();
-	detachInterrupt(0);
+	detachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN));
 }
