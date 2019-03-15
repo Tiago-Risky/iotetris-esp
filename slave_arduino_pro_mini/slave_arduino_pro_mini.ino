@@ -34,10 +34,11 @@ void setup()
 
 void loop()
 {
-  //readDHT11();
+  readDHT11();
   if(flag)
   {
     flag = false;
+    delay(100);
     go_to_sleep();
   }
 }
@@ -61,10 +62,8 @@ void readDHT11(){
   }
 }
 
-
 void requestEvent(int howMany){
-  //delay(500);
-  Wire.write("hello");
+  Wire.write(humidityTemp);
   flag = true;
 }
 
