@@ -26,6 +26,8 @@ void setup()
   delay(500);
   Serial.println("IoTetris: Start");
   delay(500); //delay needed
+
+  go_to_sleep();
 }
 
 void loop()
