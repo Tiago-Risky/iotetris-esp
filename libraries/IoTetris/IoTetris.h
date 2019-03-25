@@ -1,14 +1,14 @@
 #pragma once
-#ifndef IotTetris_h
-#define IotTetris_h
+#ifndef IoTetris_h
+#define IoTetris_h
 
 #include "Arduino.h"
 #include "Wire.h"
 
-class IotTetris_I2C
+class IoTetris_I2C
 {
     public:
-        IotTetris_I2C();
+        IoTetris_I2C();
         void slaveStart(int address, void (*)(size_t), void (*)(void));
         void masterStart(int addresses[], int sda, int scl);
         void masterRequestLoop();
@@ -24,10 +24,11 @@ class IotTetris_I2C
         int _loopPeriod;
 };
 
-class IotTetris_PMSleep
+/*
+class IoTetris_PMSleep
 {
     public:
-        IotTetris_PMSleep();
-};
+        IoTetris_PMSleep();
+};*/
 
 #endif
