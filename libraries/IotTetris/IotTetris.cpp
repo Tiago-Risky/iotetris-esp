@@ -7,6 +7,7 @@ IotTetris_I2C::IotTetris_I2C()
 
 }
 
+// address for i2c, onReceive function, onRequest function
 IotTetris_I2C::slaveStart(int address, void (*onReceive)(size_t), void (*onRequest)(void))
 {
     Wire.begin(address);
@@ -14,6 +15,7 @@ IotTetris_I2C::slaveStart(int address, void (*onReceive)(size_t), void (*onReque
     Wire.onReceive(onReceive);
 }
 
+// array with addresses for all the blocks, SDA port, SCL port
 IotTetris_I2C::masterStart(int addresses[], int sda, int scl)
 {
     Wire.begin(sda,scl);
@@ -29,6 +31,8 @@ IotTetris_I2C::masterRequestLoop()
         delay(1000);
         readSlave(_addresses[x]);
     }
+    //This delay is to be changed for a sleep later on
+    delay(_loopPeriod);
 }
 
 IotTetris_I2C::_wakeUpSlave(int slave)
@@ -51,5 +55,4 @@ IotTetris_I2C::_readSlave(int slave)
         Serial.print(c);
     }
     Serial.println();
-    delay(10000);
 }

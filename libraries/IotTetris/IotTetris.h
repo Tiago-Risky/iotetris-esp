@@ -9,11 +9,7 @@ class IotTetris_I2C
 {
     public:
         IotTetris_I2C();
-        
-        // address, onReceive, onRequest
         void slaveStart(int address, void (*)(size_t), void (*)(void));
-
-        // address, SDA, SCL
         void masterStart(int addresses[], int sda, int scl);
         void masterRequestLoop();
     private:
