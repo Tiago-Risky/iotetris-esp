@@ -14,7 +14,7 @@ class IoTetris_I2C
         void masterRequestLoop();
     private:
         int _address;
-        int _addresses[];
+        int * _addresses;
         static void (*_onReceive)(size_t);
         static void (*_onRequest)(void);
         int _sda;
