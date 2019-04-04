@@ -4,24 +4,24 @@
 
 IoTetris_Slave::IoTetris_Slave()
 {
-    _slaveHasSent = false;
-    _slaveHasUpdated = false;
+    _hasSent = false;
+    _hasUpdated = false;
 }
 
 // address for i2c, onReceive function, onRequest function
-void IoTetris_Slave::slaveStart(int address, void (*onReceive)(size_t), void (*onRequest)(void))
+void IoTetris_Slave::start(int address, void (*onReceive)(size_t), void (*onRequest)(void))
 {
     Wire.begin(address);
     Wire.onRequest(onRequest);
     Wire.onReceive(onReceive);
 }
 
-void IoTetris_Slave::slaveOnRequest(int howMany)
+void IoTetris_Slave::onRequest(int howMany)
 {
-    if (_slaveHasUpdated)
+    if (_hasUpdated)
     {
-        Wire.write(_slaveString);
-        _slaveHasSent = true;
+        Wire.write(_sendString);
+        _hasSent = true;
     }
     else
     {
@@ -29,23 +29,23 @@ void IoTetris_Slave::slaveOnRequest(int howMany)
     }
 }
 
-void IoTetris_Slave::slaveSetUpdater(void (*f)())
+void IoTetris_Slave::setUpdater(void (*f)())
 {
     _updater = f;
 }
 
-void IoTetris_Slave::_slaveUpdate()
+void IoTetris_Slave::_update()
 {
     _updater();
-    _slaveHasUpdated = true;
+    _hasUpdated = true;
 }
 
-bool IoTetris_Slave::slaveConfirmSent()
+bool IoTetris_Slave::confirmSent()
 {
-    if (_slaveHasSent)
+    if (_hasSent)
     {
-        _slaveHasSent = false;
-        _slaveHasUpdated = false;
+        _hasSent = false;
+        _hasUpdated = false;
         return true;
     }
     else{

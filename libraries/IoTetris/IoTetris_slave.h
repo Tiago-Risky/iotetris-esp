@@ -9,21 +9,19 @@ class IoTetris_Slave
 {
     public:
         IoTetris_Slave();
-        void slaveStart(int address, void (*)(size_t), void (*)(void));
-        void slaveOnRequest(int howMany);
-        void slaveSetUpdater(void (*f)());
-        bool slaveConfirmSent();
+        void start(int address, void (*)(size_t), void (*)(void));
+        void onRequest(int howMany);
+        void setUpdater(void (*f)());
+        bool confirmSent();
     private:
         int _address;
         static void (*_onReceive)(size_t);
         static void (*_onRequest)(void);
-        void _wakeUpSlave(int slave);
-        void _readSlave(int slave);
-        char * _slaveString;
-        void _slaveUpdate();
+        char * _sendString;
+        void _update();
         static void (*_updater)();
-        bool _slaveHasUpdated;
-        bool _slaveHasSent;
+        bool _hasUpdated;
+        bool _hasSent;
 };
 
 #endif
