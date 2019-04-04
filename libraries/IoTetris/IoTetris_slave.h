@@ -4,12 +4,14 @@
 
 #include "Arduino.h"
 #include "Wire.h"
+#include "Adafruit_NeoPixel.h"
 
 class IoTetris_Slave
 {
     public:
         IoTetris_Slave();
         void start(int address, void (*)(size_t), void (*)(void));
+        void setNeopixel(int pin, int brightness, int* values);
         void onRequest(int howMany);
         void setUpdater(void (*f)());
         bool confirmSent();
