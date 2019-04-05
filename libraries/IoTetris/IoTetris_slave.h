@@ -12,7 +12,7 @@ class IoTetris_Slave
         IoTetris_Slave();
         void start(int address, void (*)(size_t), void (*)(void));
         void setNeopixel(int pin, int brightness, int values[][3]);
-        void onRequest(int howMany);
+        /*void onRequest(int howMany);*/
         void setUpdater(void (*f)());
         bool confirmSent();
     private:

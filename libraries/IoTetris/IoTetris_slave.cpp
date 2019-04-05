@@ -30,7 +30,7 @@ void IoTetris_Slave::setNeopixel(int pin, int brightness, int values[][3])
     }
     strip.show();// Have to call it after every setPixel or setBrightness
 }
-
+/*
 void IoTetris_Slave::onRequest(int howMany)
 {
     if (_hasUpdated)
@@ -42,7 +42,7 @@ void IoTetris_Slave::onRequest(int howMany)
     {
         _updater();
     }
-}
+}*/
 
 void IoTetris_Slave::setUpdater(void (*f)())
 {

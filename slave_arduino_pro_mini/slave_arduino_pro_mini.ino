@@ -5,6 +5,8 @@
 
 IoTetris_Slave tetris;
 
+int neopixelValues[2][3] = {{20,20,200},{200,20,20}};
+
 #define INTERRUPT_PIN 2
 
 // DHT Sensor setup
@@ -24,9 +26,7 @@ void setup()
 {
   dht.begin();
   tetris.start(9, receiveEvent, requestEvent);
-  /*Wire.begin(9);                // join i2c bus with address #9
-  Wire.onRequest(requestEvent);
-  Wire.onReceive(receiveEvent);*/
+  tetris.setNeopixel(5,68,neopixelValues);
   
   Serial.begin(9600);           // start serial for output
   pinMode(LED_BUILTIN, OUTPUT);
