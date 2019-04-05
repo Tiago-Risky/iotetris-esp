@@ -17,7 +17,7 @@ void IoTetris_Slave::start(int address, void (*onReceive)(size_t), void (*onRequ
     Wire.onReceive(onReceive);
 }
 
-void IoTetris_Slave::setNeopixel(int pin, int brightness, int* values)
+void IoTetris_Slave::setNeopixel(int pin, int brightness, int values[][3])
 {
     int size = sizeof(values)/sizeof(values[0]);
     Adafruit_NeoPixel strip = Adafruit_NeoPixel(size,pin,NEO_GRB+NEO_KHZ800);
@@ -40,7 +40,7 @@ void IoTetris_Slave::onRequest(int howMany)
     }
     else
     {
-        _slaveUpdate();
+        _updater();
     }
 }
 

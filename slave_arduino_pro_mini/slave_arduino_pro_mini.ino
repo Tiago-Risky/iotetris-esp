@@ -1,6 +1,9 @@
 #include <Wire.h>
 #include "DHT.h"
 #include <avr/sleep.h>
+#include <IoTetris_slave.h>
+
+IoTetris_Slave tetris;
 
 #define INTERRUPT_PIN 2
 
@@ -20,9 +23,10 @@ boolean flag = false;
 void setup()
 {
   dht.begin();
-  Wire.begin(9);                // join i2c bus with address #9
+  tetris.start(9, receiveEvent, requestEvent);
+  /*Wire.begin(9);                // join i2c bus with address #9
   Wire.onRequest(requestEvent);
-  Wire.onReceive(receiveEvent);
+  Wire.onReceive(receiveEvent);*/
   
   Serial.begin(9600);           // start serial for output
   pinMode(LED_BUILTIN, OUTPUT);
