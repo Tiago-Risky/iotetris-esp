@@ -42,6 +42,7 @@ void loop()
     counter = 0;
     flagMaster = false;
     delay(100);
+    Serial.println("Sent to master");
     go_to_sleep();
   }
   if(flagPIR)
@@ -49,13 +50,15 @@ void loop()
     counter++;
     flagPIR=false;
     delay(100);
-    go_to_sleep();
+    Serial.println("Person");
+    Serial.println(counter);
   } 
 }
 
 void requestEvent(int howMany)
 {
-  strcpy(finalString,String(counter).c_str());
+  String fs = "p" + counter;
+  strcpy(finalString,fs.c_str());
   Wire.write(finalString);
   flagMaster = true;
 }

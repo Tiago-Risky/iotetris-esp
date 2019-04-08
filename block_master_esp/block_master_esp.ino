@@ -33,7 +33,7 @@ PubSubClient client(espClient);
 String result[size][2];
 
 void setup() {
-  Wire.begin(SDA,SCL);
+  Wire.begin(4,14);
 
   Serial.begin(9600);
   while(!Serial) { };
@@ -80,7 +80,7 @@ void masterRequestLoop()
 {
   for(int x=0; x<size; x++){
       wakeUpSlave(addresses[x]);
-      delay(1000);
+      delay(2000);
       result[x][0] = addresses[x];
       result[x][1] = readSlave(addresses[x]);
   }
