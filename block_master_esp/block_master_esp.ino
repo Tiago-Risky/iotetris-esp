@@ -17,11 +17,10 @@ const char* ssid = "beep";
 const char* password = "boop";
 
 // MQTT setup
-#define mqtt_server  "192.168.1.109"
-#define mqtt_name  "ESPnr1"
+#define mqtt_server  "192.168.1.73"
+#define mqtt_name  "ESPmaster"
 
-#define humidity_topic    "sensor1/humidity"
-#define temperature_topic    "sensor1/temperature"
+#define data_topic    "esp1/data"
 
 // Sleep time between updates, in seconds
 #define sleepTime 60
@@ -31,7 +30,7 @@ const char* password = "boop";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-String result[size];
+String result[size][2];
 
 void setup() {
   Wire.begin(SDA,SCL);
@@ -59,6 +58,7 @@ void setup() {
 
   // Setting up MQTT
   client.setServer(mqtt_server, 1883);
+  client.connect(mqtt_name);
 
   /*
   Publishing to the MQTT (example)
@@ -72,6 +72,8 @@ void loop()
 {
   masterRequestLoop();
   sendPayload();
+  //This delay is to be changed for a sleep later on
+  delay(loopPeriod);
 }
 
 void masterRequestLoop()
@@ -79,19 +81,33 @@ void masterRequestLoop()
   for(int x=0; x<size; x++){
       wakeUpSlave(addresses[x]);
       delay(1000);
-      result[x] = readSlave(addresses[x]);
+      result[x][0] = addresses[x];
+      result[x][1] = readSlave(addresses[x]);
   }
-    //This delay is to be changed for a sleep later on
-    delay(loopPeriod);
 }
 
 void sendPayload()
 {
   String payload = "{";
   for(int x=0; x<size; x++){
-    payload += result[x];
+    payload+=result[x][0]+":";
+    if(result[x][1]!=""){
+      payload += result[x][1];
+    }else{
+      payload += "null";
+    }
+    if(x<size-1){
+      payload+= ",";
+    }
   }
   payload += "}";
+  Serial.println(payload);
+  if(client.publish(data_topic, payload.c_str(), true)){
+    Serial.println("MQTT Message Sent");
+  }else{
+    Serial.println("MQTT Error");
+  }
+  
 }
 
 void wakeUpSlave(int slave)
