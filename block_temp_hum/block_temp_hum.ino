@@ -4,8 +4,8 @@
 #include <IoTetris_slave.h>
 
 IoTetris_Slave tetris;
-
-int neopixelValues[2][3] = {{20,20,200},{200,20,20}};
+const int neopixelSize = 2;
+int neopixelValues[neopixelSize][3] = {{20,20,200},{200,20,20}};
 
 #define INTERRUPT_PIN 2
 
@@ -26,7 +26,7 @@ void setup()
 {
   dht.begin();
   tetris.start(9, receiveEvent, requestEvent);
-  tetris.setNeopixel(5,68,neopixelValues);
+  tetris.setNeopixel(5,68,neopixelValues,neopixelSize);
   
   Serial.begin(9600);           // start serial for output
   pinMode(LED_BUILTIN, OUTPUT);
