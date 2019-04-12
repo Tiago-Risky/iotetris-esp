@@ -11,19 +11,7 @@ class IoTetris_Slave
     public:
         IoTetris_Slave();
         void start(int address, void (*)(size_t), void (*)(void));
-        void setNeopixel(int pin, int brightness, int values[][3], int size);
-        /*void onRequest(int howMany);*/
-        void setUpdater(void (*f)());
-        bool confirmSent();
-    private:
-        int _address;
-        static void (*_onReceive)(size_t);
-        static void (*_onRequest)(void);
-        char * _sendString;
-        void _update();
-        static void (*_updater)();
-        bool _hasUpdated;
-        bool _hasSent;
+        void changeNeopixel(int pin, int brightness, int values[][3], int size);
 };
 
 #endif

@@ -5,19 +5,20 @@
 /*List all the addresses for the blocks
 These should be matching with the address
 of each block
+The second value is the i2c message size
 */
-int addresses[] {8, 9};
+int addresses[][2] {{8,3}};
 
 const int size = sizeof(addresses)/sizeof(addresses[0]);
 
-int loopPeriod = 10000; // in ms
+int loopPeriod = 60000; // in ms
 
 // Network login (to be replaced with Wifi Manager?)
 const char* ssid = "beep";
 const char* password = "boop";
 
 // MQTT setup
-#define mqtt_server  "192.168.1.73"
+#define mqtt_server  "beep"
 #define mqtt_name  "ESPmaster"
 
 #define data_topic    "esp1/data"
@@ -33,7 +34,7 @@ PubSubClient client(espClient);
 String result[size][2];
 
 void setup() {
-  Wire.begin(4,14);
+  Wire.begin(SDA,SCL);
 
   Serial.begin(9600);
   while(!Serial) { };
@@ -79,35 +80,42 @@ void loop()
 void masterRequestLoop()
 {
   for(int x=0; x<size; x++){
-      wakeUpSlave(addresses[x]);
+      wakeUpSlave(addresses[x][0]);
       delay(2000);
-      result[x][0] = addresses[x];
-      result[x][1] = readSlave(addresses[x]);
+      result[x][0] = addresses[x][0];
+      result[x][1] = readSlave(x);
   }
 }
 
 void sendPayload()
 {
+  client.connect(mqtt_name);
   String payload = "{";
   for(int x=0; x<size; x++){
-    payload+=result[x][0]+":";
-    if(result[x][1]!=""){
-      payload += result[x][1];
-    }else{
-      payload += "null";
-    }
+    payload+="\"sensor"+result[x][0]+"\":\"";
+    payload+=result[x][1]+"\"";
     if(x<size-1){
       payload+= ",";
     }
   }
   payload += "}";
   Serial.println(payload);
-  if(client.publish(data_topic, payload.c_str(), true)){
+  delay(50);
+  boolean mqttsuccess = false;
+  for(int attempt=0;attempt<3;attempt++){
+    mqttsuccess = pubmystuff(payload);
+    if(mqttsuccess) break;
+  }
+  if(mqttsuccess){
     Serial.println("MQTT Message Sent");
   }else{
     Serial.println("MQTT Error");
   }
   
+}
+
+boolean pubmystuff(String payload){
+  return client.publish(data_topic,payload.c_str(), true);
 }
 
 void wakeUpSlave(int slave)
@@ -118,8 +126,10 @@ void wakeUpSlave(int slave)
   Wire.endTransmission();
 }
 
-String readSlave(int slave)
+String readSlave(int addressVal)
 {
+  int slave = addresses[addressVal][0];
+  int msgSize = addresses[addressVal][1];
   /* Might want to change this from void
   so we can gather the data and process it in the loop
   maybe? 
@@ -128,10 +138,12 @@ String readSlave(int slave)
   String a = "";
   Serial.println("Reading from slave" + String(slave));
   Wire.requestFrom(slave, 20);
-  while(Wire.available()){
+  int cont = 0;
+  while(Wire.available() && cont<msgSize){
       char c = Wire.read();
-      a = a+c;
+      a = a+ String(c);
       Serial.print(c);
+      cont++;
   }
   Serial.println();
   return a;
